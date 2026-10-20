@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package charging;
+
+// ── Service Definition ─────────────────────────────────────────────
+service ChargingGrid {
+  // Book a charging slot at a station (Unit 2 – RPC)
+  rpc BookSlot (BookRequest) returns (BookResponse);
+
+  // Release a charging slot when done
+  rpc ReleaseSlot (ReleaseRequest) returns (ReleaseResponse);
+
+  // Get all station statuses
+  rpc GetStations (Empty) returns (StationList);
+
+  // Get the current charging queue (Lamport-ordered)
+  rpc GetQueue (Empty) returns (QueueList);
+}
+
+// ── Messages ───────────────────────────────────────────────────────
+message Empty {}
+
+message BookRequest {
+  string vehicle_id = 1;
+  string station_id = 2;
+  int32  battery_pct = 3;   // current battery %
+}
+
+message BookResponse {
+  bool   success = 1;
+  string message = 2;
+  int64  lamport_ts = 3;    // assigned Lamport timestamp (Unit 3)
+  int32  queue_pos = 4;     // position in queue
+}
+
+message ReleaseRequest {
+  string vehicle_id = 1;
+  string station_id = 2;
+}
+
+message ReleaseResponse {
+  bool   success = 1;
+  string message = 2;
+}
+
+message Station {
+  string id = 1;
+  string name = 2;
+  string location = 3;
+  int32  total_slots = 4;
+  int32  used_slots = 5;
+  float  power_kw = 6;       // current grid power in kW
+  bool   transformer_locked = 7;  // mutex state (Unit 3)
+}
+
+message StationList {
+  repeated Station stations = 1;
+}
+
+message QueueEntry {
+  string vehicle_id = 1;
+  string station_id = 2;
+  int32  battery_pct = 3;
+  int64  lamport_ts = 4;     // Lamport logical clock value
+  string status = 5;         // WAITING / CHARGING / DONE
+}
+
+message QueueList {
+  repeated QueueEntry entries = 1;
+}

@@ -1,0 +1,62 @@
+# ═══════════════════════════════════════════════════════════════════
+#  VoltRoute – gRPC Server Deployment & Service (Tier 3)
+#  Unit 4: Kubernetes Orchestration
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Deployment: volt-server ──
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: volt-server
+  namespace: voltroute
+  labels:
+    app: volt-server
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: volt-server
+  template:
+    metadata:
+      labels:
+        app: volt-server
+        tier: backend
+    spec:
+      containers:
+        - name: volt-server
+          image: voltroute/server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50051
+              name: grpc
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+# ── Service: volt-server (ClusterIP – internal only) ──
+apiVersion: v1
+kind: Service
+metadata:
+  name: volt-server
+  namespace: voltroute
+  labels:
+    app: volt-server
+spec:
+  type: ClusterIP
+  selector:
+    app: volt-server
+  ports:
+    - port: 50051
+      targetPort: 50051
+      name: grpc

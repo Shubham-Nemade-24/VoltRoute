@@ -1,0 +1,69 @@
+# ═══════════════════════════════════════════════════════════════════
+#  VoltRoute – Flask Gateway Deployment & Service (Tier 2)
+#  Unit 4: Kubernetes Orchestration
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Deployment: volt-gateway (2 replicas for load distribution) ──
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: volt-gateway
+  namespace: voltroute
+  labels:
+    app: volt-gateway
+    tier: middleware
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: volt-gateway
+  template:
+    metadata:
+      labels:
+        app: volt-gateway
+        tier: middleware
+    spec:
+      containers:
+        - name: volt-gateway
+          image: voltroute/gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: GRPC_HOST
+              value: "volt-server"    # K8s DNS resolves to ClusterIP service
+            - name: GRPC_PORT
+              value: "50051"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+# ── Service: volt-gateway (NodePort – external access) ──
+apiVersion: v1
+kind: Service
+metadata:
+  name: volt-gateway
+  namespace: voltroute
+  labels:
+    app: volt-gateway
+spec:
+  type: NodePort
+  selector:
+    app: volt-gateway
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30500
+      name: http

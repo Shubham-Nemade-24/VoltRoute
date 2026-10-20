@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltRoute – Smart EV Charging Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">Volt<span class="accent">Route</span></span>
+        </div>
+        <div class="header-badges">
+            <span class="badge badge-grpc">gRPC</span>
+            <span class="badge badge-sse">SSE Live</span>
+            <span class="badge badge-lamport">Lamport Clock</span>
+            <span class="badge badge-mutex">Mutex Lock</span>
+        </div>
+        <div class="header-status">
+            <div class="pulse-dot"></div>
+            <span id="connection-status">Connecting…</span>
+        </div>
+    </div>
+</header>
+
+<!-- ═══════════════════ ARCHITECTURE BANNER ═══════════════════ -->
+<section class="arch-banner">
+    <div class="arch-tier">
+        <div class="tier-icon">🖥️</div>
+        <div class="tier-label">Tier 1</div>
+        <div class="tier-desc">EV Driver UI</div>
+    </div>
+    <div class="arch-arrow">→ REST →</div>
+    <div class="arch-tier">
+        <div class="tier-icon">🌐</div>
+        <div class="tier-label">Tier 2</div>
+        <div class="tier-desc">Flask Gateway</div>
+    </div>
+    <div class="arch-arrow">→ gRPC →</div>
+    <div class="arch-tier">
+        <div class="tier-icon">⚙️</div>
+        <div class="tier-label">Tier 3</div>
+        <div class="tier-desc">Charging Grid Server</div>
+    </div>
+</section>
+
+<!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+<main class="main-grid">
+
+    <!-- ── BOOKING PANEL ── -->
+    <section class="panel booking-panel">
+        <h2 class="panel-title">
+            <span class="panel-icon">🔌</span> Book Charging Slot
+        </h2>
+        <div class="form-group">
+            <label for="vehicle-id">Vehicle ID</label>
+            <input type="text" id="vehicle-id" placeholder="e.g. EV-MH12AB1234" />
+        </div>
+        <div class="form-group">
+            <label for="station-select">Charging Station</label>
+            <select id="station-select">
+                <option value="">Loading stations…</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="battery-pct">Current Battery %</label>
+            <div class="battery-slider">
+                <input type="range" id="battery-pct" min="5" max="95" value="30" />
+                <span id="battery-value" class="battery-value">30%</span>
+            </div>
+        </div>
+        <button id="btn-book" class="btn btn-primary" onclick="bookSlot()">
+            ⚡ Book Slot (gRPC RPC)
+        </button>
+        <button id="btn-release" class="btn btn-secondary" onclick="releaseSlot()">
+            🔓 Release Slot
+        </button>
+        <div id="booking-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ── STATIONS GRID ── -->
+    <section class="panel stations-panel">
+        <h2 class="panel-title">
+            <span class="panel-icon">🏗️</span> Charging Stations
+            <span class="live-badge">● SSE LIVE</span>
+        </h2>
+        <div id="stations-grid" class="stations-grid">
+            <div class="loading-spinner">Loading stations…</div>
+        </div>
+    </section>
+
+    <!-- ── LAMPORT QUEUE ── -->
+    <section class="panel queue-panel">
+        <h2 class="panel-title">
+            <span class="panel-icon">⏱️</span> Lamport Clock Queue
+            <span class="concept-tag">Unit 3 – Logical Clocks</span>
+        </h2>
+        <div class="queue-header">
+            <span>Vehicle</span>
+            <span>Station</span>
+            <span>Battery</span>
+            <span>Lamport TS</span>
+            <span>Status</span>
+        </div>
+        <div id="queue-list" class="queue-list">
+            <div class="empty-state">No vehicles in queue</div>
+        </div>
+    </section>
+
+    <!-- ── POWER TELEMETRY (SSE) ── -->
+    <section class="panel power-panel">
+        <h2 class="panel-title">
+            <span class="panel-icon">📊</span> Live Power Telemetry
+            <span class="concept-tag">Unit 2 – SSE Stream</span>
+        </h2>
+        <div id="power-bars" class="power-bars">
+            <div class="loading-spinner">Waiting for SSE stream…</div>
+        </div>
+    </section>
+
+    <!-- ── PUB/SUB EVENT LOG ── -->
+    <section class="panel events-panel">
+        <h2 class="panel-title">
+            <span class="panel-icon">📡</span> Pub/Sub Event Log
+            <span class="concept-tag">Unit 2 – Pub/Sub</span>
+        </h2>
+        <div id="event-log" class="event-log">
+            <div class="empty-state">Waiting for events…</div>
+        </div>
+    </section>
+
+    <!-- ── MUTEX VISUALIZER ── -->
+    <section class="panel mutex-panel">
+        <h2 class="panel-title">
+            <span class="panel-icon">🔒</span> Transformer Mutex
+            <span class="concept-tag">Unit 3 – Mutual Exclusion</span>
+        </h2>
+        <div id="mutex-visual" class="mutex-visual">
+            <div class="loading-spinner">Loading mutex state…</div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+    <div class="footer-inner">
+        <span>VoltRoute – Distributed Smart EV Charging Grid</span>
+        <span class="footer-tech">Docker • Kubernetes • gRPC • SSE • Lamport Clock • Mutual Exclusion</span>
+    </div>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# ═══════════════════════════════════════════════════════════════════
+#  VoltRoute – Kubernetes Namespace
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: voltroute
+  labels:
+    app: voltroute
+    project: ds-mini-project

@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════════════════════════
+#  VoltRoute – Docker Compose (Unit 4 – Containerization)
+# ═══════════════════════════════════════════════════════════════════
+# 3-Tier Architecture:
+#   volt-server  → Tier 3 (gRPC Charging Grid Server)
+#   volt-gateway → Tier 2 (Flask Web Gateway + SSE + Pub/Sub)
+#   Client UI    → Tier 1 (Browser, served by gateway)
+# ═══════════════════════════════════════════════════════════════════
+
+services:
+  # ── Tier 3: gRPC Charging Grid Server ──
+  volt-server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: volt-server
+    ports:
+      - "50051:50051"
+    networks:
+      - voltnet
+    restart: unless-stopped
+
+  # ── Tier 2: Flask Web Gateway ──
+  volt-gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: volt-gateway
+    ports:
+      - "5050:5000"
+    environment:
+      - GRPC_HOST=volt-server
+      - GRPC_PORT=50051
+    depends_on:
+      - volt-server
+    networks:
+      - voltnet
+    restart: unless-stopped
+
+networks:
+  voltnet:
+    driver: bridge
